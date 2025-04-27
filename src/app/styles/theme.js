@@ -177,7 +177,7 @@ export const chartColors = {
   ],
 };
 
-export default {
+const theme = {
   colors,
   typography,
   spacing,
@@ -187,3 +187,5 @@ export default {
   zIndex,
   chartColors,
 };
+
+export default theme;

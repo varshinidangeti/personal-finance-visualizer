@@ -92,7 +92,9 @@ export const chartColors = {
   ],
 };
 
-export default {
+const theme = {
   colors,
   chartColors,
 };
+
+export default theme;

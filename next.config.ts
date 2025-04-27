@@ -1,10 +1,7 @@
-import path from 'path';
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  experimental: {
-    turbo: true,  // ✅ Enable Turbopack officially
-  },
+  // Remove the experimental turbo option as it's causing type errors
   async redirects() {
     return [];
   },
