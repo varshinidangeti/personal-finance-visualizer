@@ -10,7 +10,7 @@ export default function TestDataButton({ onDataAdded }) {
     try {
       // Current month in YYYY-MM format
       const currentMonth = new Date().toISOString().slice(0, 7);
-      
+
       // Sample transactions
       const transactions = [
         {
@@ -74,33 +74,78 @@ export default function TestDataButton({ onDataAdded }) {
         }
       ];
 
-      // Add transactions
-      for (const transaction of transactions) {
-        await fetch('/api/transactions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(transaction),
-        });
-      }
+      // Check if we're in a production environment with MongoDB
+      const isProduction = process.env.NODE_ENV === 'production';
 
-      // Add budgets
-      for (const budget of budgets) {
-        await fetch('/api/budgets', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(budget),
-        });
+      if (isProduction) {
+        // Add transactions
+        for (const transaction of transactions) {
+          try {
+            const response = await fetch('/api/transactions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(transaction),
+            });
+
+            if (!response.ok) {
+              const errorData = await response.text();
+              console.error(`Transaction API error: ${response.status} - ${errorData}`);
+              throw new Error(`Failed to add transaction: ${response.status} - ${errorData}`);
+            }
+          } catch (error) {
+            console.error('Transaction fetch error:', error);
+            throw error;
+          }
+        }
+
+        // Add budgets
+        for (const budget of budgets) {
+          try {
+            const response = await fetch('/api/budgets', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(budget),
+            });
+
+            if (!response.ok) {
+              const errorData = await response.text();
+              console.error(`Budget API error: ${response.status} - ${errorData}`);
+              throw new Error(`Failed to add budget: ${response.status} - ${errorData}`);
+            }
+          } catch (error) {
+            console.error('Budget fetch error:', error);
+            throw error;
+          }
+        }
+      } else {
+        // In development or preview, use localStorage as a fallback
+        try {
+          // Store transactions in localStorage
+          const existingTransactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+          const newTransactions = [...existingTransactions, ...transactions];
+          localStorage.setItem('transactions', JSON.stringify(newTransactions));
+
+          // Store budgets in localStorage
+          const existingBudgets = JSON.parse(localStorage.getItem('budgets') || '[]');
+          const newBudgets = [...existingBudgets, ...budgets];
+          localStorage.setItem('budgets', JSON.stringify(newBudgets));
+
+          console.log('Test data added to localStorage');
+        } catch (error) {
+          console.error('Error storing data in localStorage:', error);
+          throw error;
+        }
       }
 
       alert('Test data added successfully!');
       if (onDataAdded) onDataAdded();
     } catch (error) {
       console.error('Error adding test data:', error);
-      alert('Failed to add test data. Check console for details.');
+      alert(`Failed to add test data: ${error.message || 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
