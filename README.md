@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Personal Finance Visualizer
 
-## Getting Started
+A web application for tracking personal finances, visualizing expenses, and managing budgets.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Transaction Tracking**: Record income and expenses with categories
+- **Dashboard Visualization**: View your financial data with charts and graphs
+- **Budget Management**: Set and track budgets for different categories
+- **Responsive Design**: Works on desktop and mobile devices
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Technologies Used
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Frontend**: Next.js, React, Chart.js
+- **Backend**: Next.js API Routes
+- **Database**: MongoDB (optional)
+- **Styling**: Custom CSS with utility classes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Deployment
 
-## Learn More
+This project is deployed on Vercel. You can view the live demo at:
+[https://personal-finance-visualizer.vercel.app/](https://personal-finance-visualizer.vercel.app/)
 
-To learn more about Next.js, take a look at the following resources:
+## Local Development
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Clone the repository:
+   ```
+   git clone https://github.com/varshinidangeti/personal-finance-visualizer.git
+   cd personal-finance-visualizer
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+2. Install dependencies:
+   ```
+   npm install
+   ```
 
-## Deploy on Vercel
+3. Run the development server:
+   ```
+   npm run dev
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## MongoDB Setup (Optional)
+
+The application can work with or without MongoDB:
+
+- **Without MongoDB**: Data is stored in localStorage (for demo purposes)
+- **With MongoDB**: For persistent data storage
+
+To set up MongoDB:
+
+1. Create a MongoDB Atlas account or use a local MongoDB instance
+2. Get your MongoDB connection string
+3. Create a `.env.local` file in the project root with:
+   ```
+   MONGODB_URI=your_mongodb_connection_string
+   ```
+4. For Vercel deployment, add the `MONGODB_URI` environment variable in your project settings
+
+## Project Structure
+
+- `/app`: Main application code
+  - `/components`: React components
+  - `/api`: API routes for data handling
+  - `/models`: MongoDB schema models
+  - `/lib`: Utility functions and database connection
+  - `/styles`: CSS and theme files
+- `/public`: Static assets
+
+## License
+
+This project is open source and available under the [MIT License](LICENSE).
