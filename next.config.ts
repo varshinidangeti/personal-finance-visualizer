@@ -1,7 +1,8 @@
 import type { NextConfig } from 'next';
 
+// Fixed configuration for Vercel deployment
 const nextConfig: NextConfig = {
-  // Remove the experimental turbo option as it's causing type errors
+  // No experimental options - they were causing type errors
   async redirects() {
     return [];
   },
