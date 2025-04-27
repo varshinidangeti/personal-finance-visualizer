@@ -11,199 +11,141 @@ export default function TestDataButton({ onDataAdded }) {
       // Current month in YYYY-MM format
       const currentMonth = new Date().toISOString().slice(0, 7);
 
-      // Sample transactions
+      // Sample transactions with IDs
       const transactions = [
         {
+          _id: `local_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
           amount: -50,
           description: 'Grocery shopping',
           date: new Date().toISOString(),
           category: 'Food',
-          type: 'expense'
+          type: 'expense',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         },
         {
+          _id: `local_${Date.now()+1}_${Math.random().toString(36).substring(2, 9)}`,
           amount: -30,
           description: 'Gas station',
           date: new Date().toISOString(),
           category: 'Transportation',
-          type: 'expense'
+          type: 'expense',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         },
         {
+          _id: `local_${Date.now()+2}_${Math.random().toString(36).substring(2, 9)}`,
           amount: -100,
           description: 'Movie and dinner',
           date: new Date().toISOString(),
           category: 'Entertainment',
-          type: 'expense'
+          type: 'expense',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         },
         {
+          _id: `local_${Date.now()+3}_${Math.random().toString(36).substring(2, 9)}`,
           amount: -75,
           description: 'Electric bill',
           date: new Date().toISOString(),
           category: 'Utilities',
-          type: 'expense'
+          type: 'expense',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         },
         {
+          _id: `local_${Date.now()+4}_${Math.random().toString(36).substring(2, 9)}`,
           amount: 1000,
           description: 'Salary',
           date: new Date().toISOString(),
           category: 'Income',
-          type: 'income'
+          type: 'income',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         }
       ];
 
-      // Sample budgets
+      // Sample budgets with IDs
       const budgets = [
         {
+          _id: `local_${Date.now()+5}_${Math.random().toString(36).substring(2, 9)}`,
           category: 'Food',
           amount: 200,
-          month: currentMonth
+          month: currentMonth,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         },
         {
+          _id: `local_${Date.now()+6}_${Math.random().toString(36).substring(2, 9)}`,
           category: 'Transportation',
           amount: 100,
-          month: currentMonth
+          month: currentMonth,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         },
         {
+          _id: `local_${Date.now()+7}_${Math.random().toString(36).substring(2, 9)}`,
           category: 'Entertainment',
           amount: 150,
-          month: currentMonth
+          month: currentMonth,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         },
         {
+          _id: `local_${Date.now()+8}_${Math.random().toString(36).substring(2, 9)}`,
           category: 'Utilities',
           amount: 200,
-          month: currentMonth
+          month: currentMonth,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         }
       ];
 
-      // Try API first, then fall back to localStorage if needed
-      let apiSuccess = true;
+      // Skip API and directly use localStorage for simplicity and reliability
+      console.log('Adding test data directly to localStorage');
 
+      // Store transactions in localStorage
       try {
-        // Add transactions via API
-        for (const transaction of transactions) {
-          try {
-            const response = await fetch('/api/transactions', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(transaction),
-            });
-
-            if (!response.ok) {
-              const errorData = await response.text();
-              console.error(`Transaction API error: ${response.status} - ${errorData}`);
-              apiSuccess = false;
-              break; // Stop trying API if one fails
-            }
-          } catch (error) {
-            console.error('Transaction fetch error:', error);
-            apiSuccess = false;
-            break; // Stop trying API if one fails
-          }
-        }
-
-        // If transactions succeeded, try budgets via API
-        if (apiSuccess) {
-          for (const budget of budgets) {
-            try {
-              const response = await fetch('/api/budgets', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(budget),
-              });
-
-              if (!response.ok) {
-                const errorData = await response.text();
-                console.error(`Budget API error: ${response.status} - ${errorData}`);
-                apiSuccess = false;
-                break; // Stop trying API if one fails
-              }
-            } catch (error) {
-              console.error('Budget fetch error:', error);
-              apiSuccess = false;
-              break; // Stop trying API if one fails
-            }
-          }
-        }
-
-        // If API failed, use localStorage as fallback
-        if (!apiSuccess) {
-          console.log('API failed, using localStorage fallback');
-
-          // Add IDs and timestamps to transactions
-          const transactionsWithIds = transactions.map(transaction => ({
-            ...transaction,
-            _id: `local_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }));
-
-          // Store transactions in localStorage
-          const existingTransactions = JSON.parse(localStorage.getItem('transactions') || '[]');
-          const newTransactions = [...existingTransactions, ...transactionsWithIds];
-          localStorage.setItem('transactions', JSON.stringify(newTransactions));
-
-          // Add IDs to budgets
-          const budgetsWithIds = budgets.map(budget => ({
-            ...budget,
-            _id: `local_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }));
-
-          // Store budgets in localStorage
-          const existingBudgets = JSON.parse(localStorage.getItem('budgets') || '[]');
-          const newBudgets = [...existingBudgets, ...budgetsWithIds];
-          localStorage.setItem('budgets', JSON.stringify(newBudgets));
-
-          console.log('Test data added to localStorage');
-        } else {
-          console.log('Test data added via API successfully');
-        }
-      } catch (error) {
-        console.error('Error in test data process:', error);
-
-        // Final fallback - try localStorage if everything else fails
+        // Get existing transactions or initialize empty array
+        let existingTransactions = [];
         try {
-          console.log('Final fallback to localStorage');
-
-          // Add IDs and timestamps to transactions
-          const transactionsWithIds = transactions.map(transaction => ({
-            ...transaction,
-            _id: `local_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }));
-
-          // Store transactions in localStorage
-          const existingTransactions = JSON.parse(localStorage.getItem('transactions') || '[]');
-          const newTransactions = [...existingTransactions, ...transactionsWithIds];
-          localStorage.setItem('transactions', JSON.stringify(newTransactions));
-
-          // Add IDs to budgets
-          const budgetsWithIds = budgets.map(budget => ({
-            ...budget,
-            _id: `local_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }));
-
-          // Store budgets in localStorage
-          const existingBudgets = JSON.parse(localStorage.getItem('budgets') || '[]');
-          const newBudgets = [...existingBudgets, ...budgetsWithIds];
-          localStorage.setItem('budgets', JSON.stringify(newBudgets));
-
-          console.log('Test data added to localStorage (final fallback)');
-        } catch (localError) {
-          console.error('Error storing data in localStorage:', localError);
-          throw localError;
+          const stored = localStorage.getItem('transactions');
+          existingTransactions = stored ? JSON.parse(stored) : [];
+        } catch (e) {
+          console.warn('Could not parse existing transactions, starting fresh', e);
         }
-      }
 
-      alert('Test data added successfully!');
-      if (onDataAdded) onDataAdded();
+        // Add new transactions
+        const newTransactions = [...existingTransactions, ...transactions];
+        localStorage.setItem('transactions', JSON.stringify(newTransactions));
+        console.log('Transactions saved to localStorage:', newTransactions.length);
+
+        // Get existing budgets or initialize empty array
+        let existingBudgets = [];
+        try {
+          const stored = localStorage.getItem('budgets');
+          existingBudgets = stored ? JSON.parse(stored) : [];
+        } catch (e) {
+          console.warn('Could not parse existing budgets, starting fresh', e);
+        }
+
+        // Add new budgets
+        const newBudgets = [...existingBudgets, ...budgets];
+        localStorage.setItem('budgets', JSON.stringify(newBudgets));
+        console.log('Budgets saved to localStorage:', newBudgets.length);
+
+        // Force a refresh of the data
+        if (onDataAdded) {
+          console.log('Calling onDataAdded to refresh UI');
+          onDataAdded();
+        }
+
+        alert('Test data added successfully! The page will now refresh to show the new data.');
+        window.location.reload(); // Force a page refresh to ensure data is displayed
+      } catch (error) {
+        console.error('Error saving to localStorage:', error);
+        throw new Error(`Failed to save to localStorage: ${error.message}`);
+      }
     } catch (error) {
       console.error('Error adding test data:', error);
       alert(`Failed to add test data: ${error.message || 'Unknown error'}`);

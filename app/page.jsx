@@ -19,31 +19,14 @@ export default function Home() {
   const fetchTransactions = async () => {
     try {
       setLoading(true);
+      console.log('Fetching transactions...');
 
-      // Try to fetch from API first
-      try {
-        const response = await fetch('/api/transactions');
-        const result = await response.json();
-
-        if (response.ok) {
-          console.log('Transactions fetched from API:', result.data);
-          setTransactions(result.data);
-          setError(null);
-          setLoading(false);
-          return;
-        } else {
-          console.warn('API returned error, falling back to localStorage:', result.message || result.error);
-        }
-      } catch (apiError) {
-        console.warn('Error fetching from API, falling back to localStorage:', apiError);
-      }
-
-      // Fallback to localStorage if API fails
+      // Skip API and go directly to localStorage for simplicity
       try {
         const localData = localStorage.getItem('transactions');
         if (localData) {
           const parsedData = JSON.parse(localData);
-          console.log('Transactions loaded from localStorage:', parsedData);
+          console.log('Transactions loaded from localStorage:', parsedData.length);
           setTransactions(parsedData);
           setError(null);
         } else {
@@ -72,31 +55,9 @@ export default function Home() {
   // Add new transaction
   const handleAddTransaction = async (transactionData) => {
     try {
-      // Try to add via API first
-      try {
-        const response = await fetch('/api/transactions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(transactionData),
-        });
+      console.log('Adding new transaction:', transactionData);
 
-        const result = await response.json();
-
-        if (response.ok) {
-          console.log('Transaction added via API:', result.data);
-          // Refresh the transactions list
-          fetchTransactions();
-          return true;
-        } else {
-          console.warn('API returned error, falling back to localStorage:', result.message || result.error);
-        }
-      } catch (apiError) {
-        console.warn('Error adding via API, falling back to localStorage:', apiError);
-      }
-
-      // Fallback to localStorage if API fails
+      // Skip API and directly use localStorage
       try {
         const existingTransactions = JSON.parse(localStorage.getItem('transactions') || '[]');
         // Add ID and timestamp to the transaction
@@ -128,77 +89,25 @@ export default function Home() {
   // Update existing transaction
   const handleUpdateTransaction = async (id, transactionData) => {
     try {
-      // Check if it's a local ID (starts with "local_")
-      if (id.toString().startsWith('local_')) {
-        // Update in localStorage
-        try {
-          const existingTransactions = JSON.parse(localStorage.getItem('transactions') || '[]');
-          const updatedTransactions = existingTransactions.map(t =>
-            t._id === id ? { ...t, ...transactionData, updatedAt: new Date().toISOString() } : t
-          );
+      console.log('Updating transaction:', id, transactionData);
 
-          localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
-          console.log('Transaction updated in localStorage:', id);
+      // Update in localStorage
+      try {
+        const existingTransactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+        const updatedTransactions = existingTransactions.map(t =>
+          t._id === id ? { ...t, ...transactionData, updatedAt: new Date().toISOString() } : t
+        );
 
-          // Refresh the transactions list and reset editing state
-          fetchTransactions();
-          setEditingTransaction(null);
-          return true;
-        } catch (localError) {
-          console.error('Error updating in localStorage:', localError);
-          throw new Error('Failed to update transaction in localStorage');
-        }
-      } else {
-        // Try API first
-        try {
-          const response = await fetch(`/api/transactions/${id}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(transactionData),
-          });
+        localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
+        console.log('Transaction updated in localStorage:', id);
 
-          const result = await response.json();
-
-          if (response.ok) {
-            console.log('Transaction updated via API:', result.data);
-            // Refresh the transactions list and reset editing state
-            fetchTransactions();
-            setEditingTransaction(null);
-            return true;
-          } else {
-            console.warn('API returned error, falling back to localStorage:', result.message || result.error);
-          }
-        } catch (apiError) {
-          console.warn('Error updating via API, falling back to localStorage:', apiError);
-        }
-
-        // Fallback to localStorage if API fails
-        try {
-          const existingTransactions = JSON.parse(localStorage.getItem('transactions') || '[]');
-          // Try to find and update the transaction by ID
-          const transaction = existingTransactions.find(t => t._id === id);
-
-          if (transaction) {
-            const updatedTransactions = existingTransactions.map(t =>
-              t._id === id ? { ...t, ...transactionData, updatedAt: new Date().toISOString() } : t
-            );
-
-            localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
-            console.log('Transaction updated in localStorage fallback:', id);
-
-            // Refresh the transactions list and reset editing state
-            fetchTransactions();
-            setEditingTransaction(null);
-            return true;
-          } else {
-            throw new Error(`Transaction with ID ${id} not found in localStorage`);
-          }
-        } catch (localError) {
-          console.error('Error updating in localStorage fallback:', localError);
-          throw new Error('Failed to update transaction');
-        }
+        // Refresh the transactions list and reset editing state
+        fetchTransactions();
+        setEditingTransaction(null);
+        return true;
+      } catch (localError) {
+        console.error('Error updating in localStorage:', localError);
+        throw new Error('Failed to update transaction in localStorage');
       }
     } catch (err) {
       console.error('Error updating transaction:', err);
@@ -214,65 +123,22 @@ export default function Home() {
     }
 
     try {
-      // Check if it's a local ID (starts with "local_")
-      if (id.toString().startsWith('local_')) {
-        // Delete from localStorage
-        try {
-          const existingTransactions = JSON.parse(localStorage.getItem('transactions') || '[]');
-          const updatedTransactions = existingTransactions.filter(t => t._id !== id);
+      console.log('Deleting transaction:', id);
 
-          localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
-          console.log('Transaction deleted from localStorage:', id);
+      // Delete from localStorage
+      try {
+        const existingTransactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+        const updatedTransactions = existingTransactions.filter(t => t._id !== id);
 
-          // Refresh the transactions list
-          fetchTransactions();
-          return;
-        } catch (localError) {
-          console.error('Error deleting from localStorage:', localError);
-          throw new Error('Failed to delete transaction from localStorage');
-        }
-      } else {
-        // Try API first
-        try {
-          const response = await fetch(`/api/transactions/${id}`, {
-            method: 'DELETE',
-          });
+        localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
+        console.log('Transaction deleted from localStorage:', id);
 
-          const result = await response.json();
-
-          if (response.ok) {
-            console.log('Transaction deleted via API:', id);
-            // Refresh the transactions list
-            fetchTransactions();
-            return;
-          } else {
-            console.warn('API returned error, falling back to localStorage:', result.message || result.error);
-          }
-        } catch (apiError) {
-          console.warn('Error deleting via API, falling back to localStorage:', apiError);
-        }
-
-        // Fallback to localStorage if API fails
-        try {
-          const existingTransactions = JSON.parse(localStorage.getItem('transactions') || '[]');
-          // Try to find and delete the transaction by ID
-          const transaction = existingTransactions.find(t => t._id === id);
-
-          if (transaction) {
-            const updatedTransactions = existingTransactions.filter(t => t._id !== id);
-
-            localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
-            console.log('Transaction deleted from localStorage fallback:', id);
-
-            // Refresh the transactions list
-            fetchTransactions();
-          } else {
-            throw new Error(`Transaction with ID ${id} not found in localStorage`);
-          }
-        } catch (localError) {
-          console.error('Error deleting from localStorage fallback:', localError);
-          throw new Error('Failed to delete transaction');
-        }
+        // Refresh the transactions list
+        fetchTransactions();
+        return;
+      } catch (localError) {
+        console.error('Error deleting from localStorage:', localError);
+        throw new Error('Failed to delete transaction from localStorage');
       }
     } catch (err) {
       console.error('Error deleting transaction:', err);
