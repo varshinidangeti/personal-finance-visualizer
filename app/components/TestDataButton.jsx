@@ -74,11 +74,11 @@ export default function TestDataButton({ onDataAdded }) {
         }
       ];
 
-      // Check if we're in a production environment with MongoDB
-      const isProduction = process.env.NODE_ENV === 'production';
+      // Try API first, then fall back to localStorage if needed
+      let apiSuccess = true;
 
-      if (isProduction) {
-        // Add transactions
+      try {
+        // Add transactions via API
         for (const transaction of transactions) {
           try {
             const response = await fetch('/api/transactions', {
@@ -92,52 +92,113 @@ export default function TestDataButton({ onDataAdded }) {
             if (!response.ok) {
               const errorData = await response.text();
               console.error(`Transaction API error: ${response.status} - ${errorData}`);
-              throw new Error(`Failed to add transaction: ${response.status} - ${errorData}`);
+              apiSuccess = false;
+              break; // Stop trying API if one fails
             }
           } catch (error) {
             console.error('Transaction fetch error:', error);
-            throw error;
+            apiSuccess = false;
+            break; // Stop trying API if one fails
           }
         }
 
-        // Add budgets
-        for (const budget of budgets) {
-          try {
-            const response = await fetch('/api/budgets', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(budget),
-            });
+        // If transactions succeeded, try budgets via API
+        if (apiSuccess) {
+          for (const budget of budgets) {
+            try {
+              const response = await fetch('/api/budgets', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(budget),
+              });
 
-            if (!response.ok) {
-              const errorData = await response.text();
-              console.error(`Budget API error: ${response.status} - ${errorData}`);
-              throw new Error(`Failed to add budget: ${response.status} - ${errorData}`);
+              if (!response.ok) {
+                const errorData = await response.text();
+                console.error(`Budget API error: ${response.status} - ${errorData}`);
+                apiSuccess = false;
+                break; // Stop trying API if one fails
+              }
+            } catch (error) {
+              console.error('Budget fetch error:', error);
+              apiSuccess = false;
+              break; // Stop trying API if one fails
             }
-          } catch (error) {
-            console.error('Budget fetch error:', error);
-            throw error;
           }
         }
-      } else {
-        // In development or preview, use localStorage as a fallback
-        try {
+
+        // If API failed, use localStorage as fallback
+        if (!apiSuccess) {
+          console.log('API failed, using localStorage fallback');
+
+          // Add IDs and timestamps to transactions
+          const transactionsWithIds = transactions.map(transaction => ({
+            ...transaction,
+            _id: `local_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }));
+
           // Store transactions in localStorage
           const existingTransactions = JSON.parse(localStorage.getItem('transactions') || '[]');
-          const newTransactions = [...existingTransactions, ...transactions];
+          const newTransactions = [...existingTransactions, ...transactionsWithIds];
           localStorage.setItem('transactions', JSON.stringify(newTransactions));
+
+          // Add IDs to budgets
+          const budgetsWithIds = budgets.map(budget => ({
+            ...budget,
+            _id: `local_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }));
 
           // Store budgets in localStorage
           const existingBudgets = JSON.parse(localStorage.getItem('budgets') || '[]');
-          const newBudgets = [...existingBudgets, ...budgets];
+          const newBudgets = [...existingBudgets, ...budgetsWithIds];
           localStorage.setItem('budgets', JSON.stringify(newBudgets));
 
           console.log('Test data added to localStorage');
-        } catch (error) {
-          console.error('Error storing data in localStorage:', error);
-          throw error;
+        } else {
+          console.log('Test data added via API successfully');
+        }
+      } catch (error) {
+        console.error('Error in test data process:', error);
+
+        // Final fallback - try localStorage if everything else fails
+        try {
+          console.log('Final fallback to localStorage');
+
+          // Add IDs and timestamps to transactions
+          const transactionsWithIds = transactions.map(transaction => ({
+            ...transaction,
+            _id: `local_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }));
+
+          // Store transactions in localStorage
+          const existingTransactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+          const newTransactions = [...existingTransactions, ...transactionsWithIds];
+          localStorage.setItem('transactions', JSON.stringify(newTransactions));
+
+          // Add IDs to budgets
+          const budgetsWithIds = budgets.map(budget => ({
+            ...budget,
+            _id: `local_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }));
+
+          // Store budgets in localStorage
+          const existingBudgets = JSON.parse(localStorage.getItem('budgets') || '[]');
+          const newBudgets = [...existingBudgets, ...budgetsWithIds];
+          localStorage.setItem('budgets', JSON.stringify(newBudgets));
+
+          console.log('Test data added to localStorage (final fallback)');
+        } catch (localError) {
+          console.error('Error storing data in localStorage:', localError);
+          throw localError;
         }
       }
 
